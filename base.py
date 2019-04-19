@@ -1,11 +1,14 @@
 #!/usr/local/bin/python3
 
+import sys
 import serial
 import binascii
 from time import sleep
 
 def main():
+    args = sys.argv
     ser = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE)
+
     ser.baudrate = 115200
     device_id = 0x01
 
@@ -15,55 +18,11 @@ def main():
     ser.write(send)
     print("<--\t" + core(ser.readline()))
 
-    # アラーム
+    # アラーム確認
     send = get_bytes(device_id, 0x5b)
     print("-->\t" + core(send))
     ser.write(send)
     print("<--\t" + core(ser.readline()))
-
-    # アラームリセット
-    send = get_bytes(device_id, 0x5c)
-    print("-->\t" + core(send))
-    ser.write(send)
-    print("<--\t" + core(ser.readline()))
-
-    # # サーボON
-    send = get_bytes(device_id, 0x0b)
-    print("-->\t" + core(send))
-    ser.write(send)
-    print("<--\t" + core(ser.readline()))
-
-    # パラメーター書き込み
-    # パラメーターNo.16（速度）
-    speed  = 100
-    bytes_speed = speed.to_bytes(4, 'little').hex()
-    send = get_bytes(device_id, 0x25, '1000' + bytes_speed)
-    print("-->\t" + core(send))
-    ser.write(send)
-    print("<--\t" + core(ser.readline()))
-
-    # パラメーター書き込み
-    # パラメーターNo.32（距離）・値1000000[0.1um]=100mm
-    dist= 400000
-    bytes_dist = dist.to_bytes(4, 'little').hex()
-    send = get_bytes(device_id, 0x25, '1f00' + bytes_dist)
-    print("-->\t" + core(send))
-    ser.write(send)
-    print("<--\t" + core(ser.readline()))
-
-    # 原点復帰（各機器に設定された値）
-    send = get_bytes(device_id, 0x0d, '01')
-    print("-->\t" + core(send))
-    ser.write(send)
-    print("<--\t" + core(ser.readline()))
-    sleep(15)
-
-    # # インチング（正方向）
-    # send = get_bytes(device_id, 0x11, '01')
-    # print("-->\t" + core(send))
-    # ser.write(send)
-    # print("<--\t" + core(ser.readline()))
-
     ser.close()
 
 def core(line):
