@@ -5,9 +5,12 @@ import serial
 import binascii
 from time import sleep
 
+# python3をインストールしておく
+# pip3 install pyserialでpyseralパッケージをインストールしておく
+
 def main():
     # USB-シリアルの変換ケーブルのデバイスファイルを指定
-    # Linuxなら接続すると/dev/以下にできるはず
+    # Linux/macなら接続すると/dev/以下にできるはず
     ser = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE)
     ser.baudrate = 115200
     # THC本体裏のロータリースイッチで指定
