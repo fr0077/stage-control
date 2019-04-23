@@ -8,17 +8,19 @@ from time import sleep
 # python3をインストールしておく
 # pip3 install pyserialでpyseralパッケージをインストールしておく
 
+ser = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE)
+ser.baudrate = 115200
+# THC本体裏のロータリースイッチで指定
+# X:0x00, Y:0x01, Z:0x02
+device_id = 0x00
+
 def main():
     # USB-シリアルの変換ケーブルのデバイスファイルを指定
     # Linux/macなら接続すると/dev/以下にできるはず
-    ser = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE)
-    ser.baudrate = 115200
-    # THC本体裏のロータリースイッチで指定
-    # X:0x00, Y:0x01, Z:0x02
-    device_id = 0x00
 
     set_manual()
     check_alm()
+    reset_alm()
     servo_on()
     zero()
     sleep(10)
@@ -45,7 +47,7 @@ def check_alm():
 def reset_alm():
     # アラームリセット
     print("RESET ALM")
-    send = get_bytes(device_id, 0x5b)
+    send = get_bytes(device_id, 0x5c)
     print("-->\t" + core(send))
     ser.write(send)
     print("<--\t" + core(ser.readline()))
