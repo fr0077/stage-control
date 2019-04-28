@@ -27,7 +27,7 @@ def main():
     write_speed(10)
     write_distance(800000)
     get_current()
-    move()
+    move(POSITIVE)
 
 def set_manual():
     # AUTO/MANUALセット（MANUAL)
@@ -71,7 +71,7 @@ def servo_on():
 
 def write_speed(speed):
     # パラメーター書き込み
-    # パラメーターNo.16（速度）
+    # パラメーターNo.16（速度）[mm/s]
     print("WRITE SPEED")
     bytes_speed = speed.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '1000' + bytes_speed)
@@ -79,9 +79,19 @@ def write_speed(speed):
     ser.write(send)
     print("<--\t" + core(ser.readline()))
 
+def write_acceleration(acceleration):
+    # パラメーター書き込み
+    # パラメーターNo.9（加減速度）[m/s^2]
+    print("WRITE ACCELERATION")
+    bytes_accel = acceleration.to_bytes(4, 'little').hex()
+    send = get_bytes(device_id, 0x25, '0900' + bytes_accel)
+    print("-->\t" + core(send))
+    ser.write(send)
+    print("<--\t" + core(ser.readline()))
+
 def write_distance(dist):
     # パラメーター書き込み
-    # パラメーターNo.32（距離）[0.1um]
+    # パラメーターNo.31（距離）[0.1um]
     print("WRITE DISTANCE")
     bytes_dist = dist.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '1f00' + bytes_dist)
@@ -97,11 +107,13 @@ def zero():
     ser.write(send)
     print("<--\t" + core(ser.readline()))
 
-def move():
+    POSITIVE = '01'
+    NEGATIVE = '02'
+def move(direction):
     # パラメーター書き込みで指定した速度・位置で移動
     # インチング（正方向）
     print("MOVE")
-    send = get_bytes(device_id, 0x11, '01')
+    send = get_bytes(device_id, 0x11, direction)
     print("-->\t" + core(send))
     ser.write(send)
     print("<--\t" + core(ser.readline()))
