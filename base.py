@@ -22,10 +22,11 @@ def main():
     check_alm()
     reset_alm()
     servo_on()
-    zero()
-    sleep(10)
-    write_speed(50)
-    write_distance(800000);
+    # zero()
+    # sleep(10)
+    write_speed(10)
+    write_distance(800000)
+    get_current()
     move()
 
 def set_manual():
@@ -100,7 +101,7 @@ def move():
     # パラメーター書き込みで指定した速度・位置で移動
     # インチング（正方向）
     print("MOVE")
-    send = get_bytes(device_id, 0x11, '02')
+    send = get_bytes(device_id, 0x11, '01')
     print("-->\t" + core(send))
     ser.write(send)
     print("<--\t" + core(ser.readline()))
