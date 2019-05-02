@@ -3,4 +3,5 @@
 import base
 import sys
 
-# print(sys.argv[1])
+base.set_manual(base.AXIS[sys.argv[1]])
+
