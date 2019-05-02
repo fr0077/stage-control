@@ -1,23 +1,15 @@
 #!/usr/local/bin/python3
 
-import sys
 import serial
 import binascii
 from time import sleep
 
-# python3をインストールしておく
-# pip3 install pyserialでpyseralパッケージをインストールしておく
-
 ser = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE)
 ser.baudrate = 115200
-# THC本体裏のロータリースイッチで指定
-# X:0x00, Y:0x01, Z:0x02
-device_id = 0x00
+POSITIVE = '01'
+NEGATIVE = '02'
 
 def main():
-    # USB-シリアルの変換ケーブルのデバイスファイルを指定
-    # Linux/macなら接続すると/dev/以下にできるはず
-
     set_manual()
     check_alm()
     reset_alm()
@@ -107,8 +99,6 @@ def zero():
     ser.write(send)
     print("<--\t" + core(ser.readline()))
 
-    POSITIVE = '01'
-    NEGATIVE = '02'
 def move(direction):
     # パラメーター書き込みで指定した速度・位置で移動
     # インチング（正方向）
@@ -143,7 +133,4 @@ def get_bytes(device_id, cmd_no, data=None):
     if data is not None:
         ret += binascii.unhexlify(data)
     return  ret + crc + b'\x0d\x0a'
-
-if __name__ == '__main__':
-    main()
 
