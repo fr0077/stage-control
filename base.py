@@ -4,7 +4,7 @@ import serial
 import binascii
 from time import sleep
 
-ser = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE)
+ser = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=10)
 ser.baudrate = 115200
 DIRECTION = {'PLUS':'01', 'MINUS':'02'}
 AXIS = {'X':0x00, 'Y':0x01, 'Z':0x02}
@@ -13,31 +13,42 @@ def set_manual(device_id):
     # AUTO/MANUALセット（MANUAL)
     send = get_bytes(device_id, 0x70, '01')
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
+
+def printResult(result):
+    if result:
+        print(core(result))
+    else:
+        print("TIMEOUT")
+
+def get_current_position(device_id):
+    send = get_bytes(device_id, 0x17)
+    ser.write(send)
+    printResult(ser.readline())
 
 def check_alm(device_id):
     # アラーム確認
     send = get_bytes(device_id, 0x5b)
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
 
 def reset_alm(device_id):
     # アラームリセット
     send = get_bytes(device_id, 0x5c)
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
 
 def get_current(device_id):
     # 電流指令値取得
     send = get_bytes(device_id, 0x34)
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
 
 def servo_on(device_id):
     # サーボON
     send = get_bytes(device_id, 0x0b)
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
 
 def write_speed(device_id, speed):
     # パラメーター書き込み
@@ -45,7 +56,7 @@ def write_speed(device_id, speed):
     bytes_speed = speed.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '1000' + bytes_speed)
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
 
 def write_distance(device_id, dist):
     # パラメーター書き込み
@@ -53,20 +64,20 @@ def write_distance(device_id, dist):
     bytes_dist = dist.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '1f00' + bytes_dist)
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
 
 def zero(device_id):
     #  原点復帰（各機器に設定された値）
     send = get_bytes(device_id, 0x0d, '01')
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
 
 def move(device_id, direction):
     # パラメーター書き込みで指定した速度・位置で移動
     # インチング（正方向）
     send = get_bytes(device_id, 0x11, direction)
     ser.write(send)
-    print(core(ser.readline()))
+    printResult(ser.readline())
 
 def core(line):
     linebytes = binascii.hexlify(line)
