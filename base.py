@@ -4,17 +4,18 @@ import serial
 import binascii
 from time import sleep
 
-ser_x = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=10)
-ser_x.baudrate = 115200
-ser_y = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=10)
-ser_y.baudrate = 115200
-ser_z = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=10)
-ser_z.baudrate = 115200
-
+TIMEOUT=5
 DIRECTION = {'PLUS':'01', 'MINUS':'02'}
 AXIS = {'X':0x00, 'Y':0x01, 'Z':0x02}
 SER = {0x00:ser_x, 0x01:ser_y, 0x01:ser_z}
 SPEED = {'01':38400, '02':57600, '03':115200}
+
+ser_x = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
+ser_x.baudrate = SPEED['03']
+ser_y = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
+ser_y.baudrate = SPEED['03']
+ser_z = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
+ser_z.baudrate = SPEED['03']
 
 def set_communication_speed(device_id, speed):
     send = get_bytes(device_id, 0x02, speed)
