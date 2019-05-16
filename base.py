@@ -4,16 +4,38 @@ import serial
 import binascii
 from time import sleep
 
-ser = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=10)
-ser.baudrate = 115200
+ser_x = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=10)
+ser_x.baudrate = 115200
+ser_y = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=10)
+ser_y.baudrate = 115200
+ser_z = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=10)
+ser_z.baudrate = 115200
+
 DIRECTION = {'PLUS':'01', 'MINUS':'02'}
 AXIS = {'X':0x00, 'Y':0x01, 'Z':0x02}
+SER = {0x00:ser_x, 0x01:ser_y, 0x01:ser_z}
+SPEED = {'01':38400, '02':57600, '03':115200}
+
+def set_communication_speed(device_id, speed):
+    send = get_bytes(device_id, 0x02, speed)
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
+
+def get_servo_status(device_id):
+    send = get_bytes(device_id, 0x15)
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
+
+def get_zero_status(device_id):
+    send = get_bytes(device_id, 0x16)
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def set_manual(device_id):
     # AUTO/MANUALセット（MANUAL)
     send = get_bytes(device_id, 0x70, '01')
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def printResult(result):
     if result:
@@ -23,61 +45,68 @@ def printResult(result):
 
 def get_current_position(device_id):
     send = get_bytes(device_id, 0x17)
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def check_alm(device_id):
     # アラーム確認
     send = get_bytes(device_id, 0x5b)
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def reset_alm(device_id):
     # アラームリセット
     send = get_bytes(device_id, 0x5c)
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def get_current(device_id):
     # 電流指令値取得
     send = get_bytes(device_id, 0x34)
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def servo_on(device_id):
     # サーボON
     send = get_bytes(device_id, 0x0b)
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def write_speed(device_id, speed):
     # パラメーター書き込み
     # パラメーターNo.16（速度）[mm/s]
     bytes_speed = speed.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '1000' + bytes_speed)
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def write_distance(device_id, dist):
     # パラメーター書き込み
     # パラメーターNo.31（距離）[0.1um]
     bytes_dist = dist.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '1f00' + bytes_dist)
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
+    
+def set_offset(device_id, offset):
+    # パラメーター書き込み
+    # パラメーターNo.6（距離）[0.1um]
+    bytes_offset = offset.to_bytes(4, 'little').hex()
+    send = get_bytes(device_id, 0x25, '0600' + bytes_offset)
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def zero(device_id):
-    #  原点復帰（各機器に設定された値）
     send = get_bytes(device_id, 0x0d, '01')
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def move(device_id, direction):
     # パラメーター書き込みで指定した速度・位置で移動
     # インチング（正方向）
     send = get_bytes(device_id, 0x11, direction)
-    ser.write(send)
-    printResult(ser.readline())
+    SER[device_id].write(send)
+    printResult(SER[device_id].readline())
 
 def core(line):
     linebytes = binascii.hexlify(line)
@@ -86,7 +115,8 @@ def core(line):
     cmd_no = response[2:4]
     data = response[4:len(response)]
     ret = str(data, "utf-8")
-    return ret
+    ret_array = [ret[i: i+2] for i in range(0, len(ret), 2)]
+    return ' '.join(ret_array)
 
 def get_crc(cmd_no, data=None):
     crc_data = cmd_no
