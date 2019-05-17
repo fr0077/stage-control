@@ -2,19 +2,20 @@
 
 import serial
 import binascii
+import sys
 from time import sleep
 
 TIMEOUT=5
 DIRECTION = {'PLUS':'01', 'MINUS':'02'}
 AXIS = {'X':0x00, 'Y':0x01, 'Z':0x02}
-SER = {0x00:ser_x, 0x01:ser_y, 0x01:ser_z}
+ser_x = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
+ser_y = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
+ser_z = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
+SER = {0x00:ser_x, 0x01:ser_y, 0x02:ser_z}
 SPEED = {'01':38400, '02':57600, '03':115200}
 
-ser_x = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
 ser_x.baudrate = SPEED['03']
-ser_y = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
 ser_y.baudrate = SPEED['03']
-ser_z = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
 ser_z.baudrate = SPEED['03']
 
 def set_communication_speed(device_id, speed):
@@ -88,7 +89,7 @@ def write_distance(device_id, dist):
     send = get_bytes(device_id, 0x25, '1f00' + bytes_dist)
     SER[device_id].write(send)
     printResult(SER[device_id].readline())
-    
+
 def set_offset(device_id, offset):
     # パラメーター書き込み
     # パラメーターNo.6（距離）[0.1um]
