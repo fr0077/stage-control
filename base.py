@@ -3,13 +3,13 @@
 import serial
 import binascii
 import sys
-from time import sleep
+import time
 
 TIMEOUT=5
 DIRECTION = {'PLUS':'01', 'MINUS':'02'}
 AXIS = {'X':0x00, 'Y':0x01, 'Z':0x02}
-ser_x = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
-ser_y = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
+ser_x = serial.Serial('/dev/tty.usbserial-A506MRML', parity=serial.PARITY_NONE, timeout=TIMEOUT)
+ser_y = serial.Serial('/dev/tty.usbserial-A506MRF8', parity=serial.PARITY_NONE, timeout=TIMEOUT)
 ser_z = serial.Serial('/dev/tty.usbserial-A506MR12', parity=serial.PARITY_NONE, timeout=TIMEOUT)
 SER = {0x00:ser_x, 0x01:ser_y, 0x02:ser_z}
 SPEED = {'01':38400, '02':57600, '03':115200}
@@ -21,23 +21,24 @@ ser_z.baudrate = SPEED['03']
 def set_communication_speed(device_id, speed):
     send = get_bytes(device_id, 0x02, speed)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def get_servo_status(device_id):
     send = get_bytes(device_id, 0x15)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def get_zero_status(device_id):
     send = get_bytes(device_id, 0x16)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def set_manual(device_id):
     # AUTO/MANUALセット（MANUAL)
+    start = time.time()
     send = get_bytes(device_id, 0x70, '01')
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def printResult(result):
     if result:
@@ -48,31 +49,31 @@ def printResult(result):
 def get_current_position(device_id):
     send = get_bytes(device_id, 0x17)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def check_alm(device_id):
     # アラーム確認
     send = get_bytes(device_id, 0x5b)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def reset_alm(device_id):
     # アラームリセット
     send = get_bytes(device_id, 0x5c)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def get_current(device_id):
     # 電流指令値取得
     send = get_bytes(device_id, 0x34)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def servo_on(device_id):
     # サーボON
     send = get_bytes(device_id, 0x0b)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def write_speed(device_id, speed):
     # パラメーター書き込み
@@ -80,7 +81,7 @@ def write_speed(device_id, speed):
     bytes_speed = speed.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '1000' + bytes_speed)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def write_distance(device_id, dist):
     # パラメーター書き込み
@@ -88,7 +89,7 @@ def write_distance(device_id, dist):
     bytes_dist = dist.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '1f00' + bytes_dist)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def set_offset(device_id, offset):
     # パラメーター書き込み
@@ -96,19 +97,19 @@ def set_offset(device_id, offset):
     bytes_offset = offset.to_bytes(4, 'little').hex()
     send = get_bytes(device_id, 0x25, '0600' + bytes_offset)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def zero(device_id):
     send = get_bytes(device_id, 0x0d, '01')
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def move(device_id, direction):
     # パラメーター書き込みで指定した速度・位置で移動
     # インチング（正方向）
     send = get_bytes(device_id, 0x11, direction)
     SER[device_id].write(send)
-    printResult(SER[device_id].readline())
+    printResult(SER[device_id].read_until(b'\x0d\x0a'))
 
 def core(line):
     linebytes = binascii.hexlify(line)
